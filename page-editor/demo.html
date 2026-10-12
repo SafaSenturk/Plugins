@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sayfa düzenleyici — örnek</title>
+<style>
+  html,body{margin:0;height:100%}
+  #app{height:100vh}
+  #play{display:none;min-height:100vh}
+  #back{position:fixed;right:16px;bottom:16px;z-index:10;padding:10px 16px;border-radius:8px;border:0;background:#2563EB;color:#fff;font:600 14px sans-serif;cursor:pointer}
+</style>
+<script src="page-editor.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<div id="play"><style id="play-css"></style><div id="play-root"></div><button id="back">Editöre dön</button></div>
+
+<script>
+/* ---------------------------------------------------------------
+ * 1) Oyununuzun sayfalarının stilleri. Bloklar bu sınıfları kullanır.
+ *    var(--pe-...) değişkenleri editörün Tema sekmesinden gelir.
+ * --------------------------------------------------------------- */
+const SITE_CSS = `
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--pe-paper);color:var(--pe-ink);line-height:1.55}
+h1,h2,h3{font-family:var(--pe-head-font);line-height:1.15;margin:0 0 .4em}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.btn{display:inline-block;padding:.8em 1.4em;border-radius:var(--pe-radius);background:var(--pe-accent);color:#fff;text-decoration:none;font-weight:600;border:2px solid var(--pe-accent)}
+.btn.ghost{background:transparent;color:inherit;border-color:currentColor}
+.hero{position:relative;min-height:62vh;display:flex;align-items:center;background:var(--pe-band) center/cover no-repeat;color:#fff;text-align:center}
+.hero::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,var(--ov,.5))}
+.hero .wrap{position:relative}
+.hero h1{font-size:clamp(2rem,6vw,4rem)}
+.hero p{font-size:1.15rem;opacity:.9;max-width:640px;margin:0 auto 1.4em}
+.hero .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.text{max-width:760px}.text.c{text-align:center;margin:0 auto}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
+.feat > div{background:var(--pe-surface);color:var(--pe-ink);padding:22px;border-radius:var(--pe-radius);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.feat .ic{font-size:2rem}
+.faq details{border-bottom:1px solid rgba(127,127,127,.3);padding:14px 0}
+.faq summary{font-weight:600;cursor:pointer}
+.pic img{width:100%;display:block;border-radius:var(--pe-radius)}
+.pic figcaption{font-size:.85rem;opacity:.7;margin-top:6px;text-align:center}
+.board{width:100%;border-collapse:collapse}
+.board td,.board th{padding:10px;border-bottom:1px solid rgba(127,127,127,.25);text-align:left}
+.board td:last-child,.board th:last-child{text-align:right}
+`;
+
+/* ---------------------------------------------------------------
+ * 2) Blok tipleri. render(b, h) HTML döndürür.
+ *    h.ed("alan")   -> editörde çift tıklayıp yerinde yazılabilir
+ *    h.item / h.itemX / h.addItem -> listeler editörde sürüklenir/silinir/eklenir
+ * --------------------------------------------------------------- */
+const BLOCKS = {
+  hero: {
+    label: "Kapak", icon: "image", group: "Temel", hint: "Sayfanın en üstündeki büyük giriş alanı.",
+    fields: [
+      { k: "title", label: "Başlık", type: "text", i18n: true },
+      { k: "text", label: "Açıklama", type: "area", i18n: true },
+      { k: "img", label: "Arka plan görseli", type: "image" },
+      { k: "overlay", label: "Karartma", type: "range", min: 0, max: 90, step: 5, unit: "%", def: 50 },
+      { k: "buttons", label: "Düğmeler", type: "items", max: 2, add: "Düğme ekle", fields: [
+        { k: "label", label: "Yazı", type: "text", i18n: true },
+        { k: "href", label: "Bağlantı", type: "link" },
+        { k: "style", label: "Görünüm", type: "select", opts: [["", "Dolu"], ["ghost", "Çerçeve"]] }] }
+    ],
+    make: () => ({ title: "Oyuna hoş geldin", text: "Kısa bir açıklama yazın.", overlay: 50, buttons: [{ label: "Oyna", href: "#oyna" }] }),
+    render: (b, h) => '<section class="hero" style="--ov:' + ((Number(b.overlay) || 0) / 100) + (b.img ? ";background-image:url('" + h.esc(b.img) + "')" : "") + '"><div class="wrap">' +
+      "<h1" + h.ed("title") + ">" + h.esc(h.t(b, "title")) + "</h1>" +
+      (h.t(b, "text") || h.canvas ? "<p" + h.ed("text") + ">" + h.esc(h.t(b, "text")) + "</p>" : "") +
+      '<div class="acts">' + (b.buttons || []).map((x, i) =>
+        '<a class="btn ' + h.esc(x.style || "") + '"' + h.link(x.href) + h.item("buttons", i) + h.ed("buttons." + i + ".label") + ">" + h.esc(h.t(x, "label")) + "</a>").join("") +
+        h.addItem("buttons", "Düğme", 2, (b.buttons || []).length) + "</div></div></section>"
+  },
+  text: {
+    label: "Yazı", icon: "text", group: "Temel",
+    fields: [
+      { k: "title", label: "Başlık", type: "text", i18n: true },
+      { k: "text", label: "Metin", type: "area", i18n: true, rows: 7, help: "**kalın**, *eğik*, [yazı](adres). Boş satır yeni paragraf." },
+      { k: "align", label: "Hizalama", type: "seg", opts: [["", "Sola"], ["c", "Ortaya"]] }
+    ],
+    make: () => ({ title: "Başlık", text: "Buraya yazın." }),
+    render: (b, h) => '<div class="wrap"><div class="text ' + h.esc(b.align || "") + '">' +
+      (h.t(b, "title") ? "<h2" + h.ed("title") + ">" + h.esc(h.t(b, "title")) + "</h2>" : "") +
+      "<div" + h.ed("text") + ">" + h.rich(h.t(b, "text")) + "</div></div></div>"
+  },
+  features: {
+    label: "Özellikler", icon: "columns", group: "Temel", hint: "Yan yana kutular.",
+    fields: [
+      { k: "title", label: "Başlık", type: "text", i18n: true },
+      { k: "items", label: "Kutular", type: "items", max: 6, add: "Kutu ekle", fields: [
+        { k: "icon", label: "Emoji", type: "text" },
+        { k: "title", label: "Başlık", type: "text", i18n: true },
+        { k: "text", label: "Açıklama", type: "area", i18n: true, rows: 3 }] }
+    ],
+    make: () => ({ title: "Neden bu oyun?", items: [{ icon: "⚡", title: "Hızlı", text: "Saniyeler içinde başla." }, { icon: "🏆", title: "Rekabetçi", text: "Skor tablosuna gir." }, { icon: "🎨", title: "Renkli", text: "Göze hoş gelir." }] }),
+    render: (b, h) => '<div class="wrap">' + (h.t(b, "title") ? "<h2" + h.ed("title") + ">" + h.esc(h.t(b, "title")) + "</h2>" : "") +
+      '<div class="feat">' + (b.items || []).map((x, i) => "<div" + h.item("items", i) + ">" + h.itemX("items", i) +
+        '<div class="ic"' + h.ed("items." + i + ".icon") + ">" + h.esc(x.icon || "") + "</div>" +
+        "<h3" + h.ed("items." + i + ".title") + ">" + h.esc(h.t(x, "title")) + "</h3>" +
+        "<p" + h.ed("items." + i + ".text") + ">" + h.esc(h.t(x, "text")) + "</p></div>").join("") +
+      h.addItem("items", "Kutu ekle", 6, (b.items || []).length) + "</div></div>"
+  },
+  image: {
+    label: "Görsel", icon: "image", group: "Medya",
+    fields: [
+      { k: "src", label: "Görsel", type: "image" },
+      { k: "caption", label: "Alt yazı", type: "text", i18n: true },
+      { k: "width", label: "Genişlik", type: "seg", opts: [["", "Sayfa"], ["n", "Dar"]] }
+    ],
+    make: () => ({}),
+    render: (b, h) => b.src ? '<figure class="wrap pic" style="margin:0 auto;' + (b.width === "n" ? "max-width:560px" : "") + '"><img src="' + h.esc(b.src) + '" alt="">' +
+      (h.t(b, "caption") ? "<figcaption" + h.ed("caption") + ">" + h.esc(h.t(b, "caption")) + "</figcaption>" : "") + "</figure>" : ""
+  },
+  faq: {
+    label: "Sık sorulanlar", icon: "question", group: "Temel",
+    fields: [
+      { k: "title", label: "Başlık", type: "text", i18n: true },
+      { k: "items", label: "Sorular", type: "items", add: "Soru ekle", fields: [
+        { k: "q", label: "Soru", type: "text", i18n: true },
+        { k: "a", label: "Cevap", type: "area", i18n: true, rows: 3 }] }
+    ],
+    make: () => ({ title: "Sık sorulanlar", items: [{ q: "Ücretsiz mi?", a: "Evet." }] }),
+    render: (b, h) => '<div class="wrap faq" style="max-width:760px"><h2' + h.ed("title") + ">" + h.esc(h.t(b, "title")) + "</h2>" +
+      (b.items || []).map((x, i) => "<details" + h.item("items", i) + (h.canvas ? " open" : "") + ">" + h.itemX("items", i) +
+        "<summary" + h.ed("items." + i + ".q") + ">" + h.esc(h.t(x, "q")) + "</summary><p" + h.ed("items." + i + ".a") + ">" + h.esc(h.t(x, "a")) + "</p></details>").join("") +
+      h.addItem("items", "Soru ekle", 0, 0) + "</div>"
+  },
+  // oyuna özel: veriyi oyun koduyla dolduran bir blok (afterRender ile)
+  scores: {
+    label: "Skor tablosu", icon: "star", group: "Oyun", hint: "Oyunun en iyi skorlarını gösterir. Veriyi oyun doldurur.",
+    fields: [
+      { k: "title", label: "Başlık", type: "text", i18n: true },
+      { k: "limit", label: "Kaç kişi", type: "number", min: 3, max: 50 }
+    ],
+    make: () => ({ title: "En iyiler", limit: 5 }),
+    render: (b, h) => '<div class="wrap" style="max-width:640px"><h2' + h.ed("title") + ">" + h.esc(h.t(b, "title")) + "</h2>" +
+      '<table class="board" data-scores="' + (Number(b.limit) || 5) + '"><tr><th>#</th><th>Oyuncu</th><th>Skor</th></tr></table></div>'
+  },
+  spacer: {
+    label: "Boşluk", icon: "spacer", group: "Düzen",
+    fields: [{ k: "h", label: "Yükseklik", type: "range", min: 10, max: 200, step: 10, unit: "px", def: 40 }],
+    make: () => ({ h: 40, pad: "0" }),
+    render: b => '<div style="height:' + (Number(b.h) || 40) + 'px"></div>'
+  },
+  html: {
+    label: "Özel HTML", icon: "code", group: "Düzen", hint: "Kendi kodunuz. Güvendiğiniz içerik dışında kullanmayın.",
+    fields: [{ k: "code", label: "HTML", type: "area", rows: 8 }],
+    make: () => ({ code: "<div class=\"wrap\"><p>Merhaba</p></div>" }),
+    render: b => b.code || ""
+  }
+};
+
+// oyunun kendi verisiyle dolan bloklar için: her çizimden sonra çağrılır
+function fillScores(rootEl) {
+  const demo = [["Ayşe", 9820], ["Mert", 9110], ["Can", 8700], ["Ece", 8050], ["Deniz", 7400], ["Bora", 6900]];
+  rootEl.querySelectorAll("[data-scores]").forEach(t => {
+    const n = Number(t.getAttribute("data-scores"));
+    t.innerHTML = "<tr><th>#</th><th>Oyuncu</th><th>Skor</th></tr>" + demo.slice(0, n).map((r, i) => "<tr><td>" + (i + 1) + "</td><td>" + r[0] + "</td><td>" + r[1] + "</td></tr>").join("");
+  });
+}
+
+/* ---------------------------------------------------------------
+ * 3) Kayıt yeri. Örnekte tarayıcı; Firebase vb. için kendi
+ *    { load, saveDraft, publish, history, upload } nesnenizi verin.
+ * --------------------------------------------------------------- */
+const storage = PageEditor.localStorage("oyun-sayfalari");
+
+/* ---------------------------------------------------------------
+ * 4) Editörü aç
+ * --------------------------------------------------------------- */
+const editor = PageEditor.create({
+  mount: "#app",
+  title: "Oyun sayfaları",
+  blocks: BLOCKS,
+  groups: ["Temel", "Medya", "Oyun", "Düzen"],
+  pages: { home: "Giriş ekranı", menu: "Ana menü", gameover: "Oyun bitti" },
+  langs: ["tr", "en"],
+  siteCss: SITE_CSS,
+  defaultBlocks: {
+    home: [BLOCKS.hero.make(), BLOCKS.features.make()].map((b, i) => Object.assign({ type: ["hero", "features"][i] }, b)),
+    gameover: [Object.assign({ type: "text", align: "c" }, { title: "Oyun bitti!", text: "Tekrar denemek ister misin?" }), Object.assign({ type: "scores" }, BLOCKS.scores.make())]
+  },
+  links: [["Oyun", [["#oyna", "Oyunu başlat"], ["#skorlar", "Skorlar"]]]],
+  afterRender: fillScores,
+  onPreview: (draft, page, lang) => showPage(draft, page, lang)
+});
+editor.on("publish", doc => console.log("yayınlandı, sürüm", doc.rev));
+
+/* ---------------------------------------------------------------
+ * 5) Oyunun içinde: yayındaki sayfayı editör olmadan göstermek
+ * --------------------------------------------------------------- */
+function showPage(doc, page, lang) {
+  document.getElementById("app").style.display = "none";
+  document.getElementById("play").style.display = "block";
+  document.getElementById("play-css").textContent = SITE_CSS + PageEditor.baseCss + PageEditor.themeCss(doc.theme);
+  const root = document.getElementById("play-root");
+  root.innerHTML = PageEditor.renderPage(doc, page, { blocks: BLOCKS, lang: lang || "tr" });
+  fillScores(root);
+}
+document.getElementById("back").onclick = () => {
+  document.getElementById("play").style.display = "none";
+  document.getElementById("app").style.display = "";
+};
+</script>
+</body>
+</html>
