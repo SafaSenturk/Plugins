@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orb3D — örnek</title>
+<style>
+  :root{--bg:#0f0e0c;--surface:#171512;--text:#ebe6da;--muted:#979082;--line:rgba(235,230,218,.13);--accent:#c98a4b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,56px)}
+  .hero{position:relative;min-height:100svh;display:flex;align-items:flex-end;overflow:hidden;padding:120px 0 80px}
+  #globe{position:absolute;right:max(-8vw,-120px);top:50%;width:min(72vw,860px);aspect-ratio:1;transform:translateY(-52%)}
+  .hero .wrap{position:relative;z-index:1;pointer-events:none;width:100%}
+  .hero .wrap > *{pointer-events:auto}
+  h1{font:400 clamp(2.4rem,7vw,5.6rem)/1.02 Georgia,serif;max-width:12ch}
+  h1 em{color:var(--accent)}
+  p.lede{color:var(--muted);max-width:44ch;margin:18px 0 22px}
+  .places{display:flex;flex-wrap:wrap;gap:8px}
+  .places button{font:500 .78rem ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer}
+  .places button:hover{border-color:var(--accent);color:var(--accent)}
+  h2{font:400 2rem Georgia,serif;margin:80px 0 8px}
+  .muted{color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin:24px 0 120px}
+  .cell{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .cell canvas{width:100%;aspect-ratio:1;display:block}
+  .cell span{font:500 .72rem ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  @media (max-width:900px){#globe{width:120vw;right:-30vw;top:36%;opacity:.75}}
+</style>
+</head>
+<body>
+<section class="hero" id="intro">
+  <canvas id="globe" aria-label="Dönen dünya küresi"></canvas>
+  <div class="wrap">
+    <h1>Her yerden <em>çalışan</em> yazılım.</h1>
+    <p class="lede">Sürükleyerek çevirin. Bir şehre tıklayınca küre oraya döner. Sayfayı kaydırınca küre büyüyüp solar.</p>
+    <div class="places" id="places"></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <h2>Şekiller</h2>
+  <p class="muted">Aynı motor, farklı tel kafesler. İlki portföydeki giriş küresinin aynısı.</p>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script src="orb3d.js"></script>
+<script>
+  const PLACES = [
+    { lat: 41.01, lon: 28.98, label: "İstanbul" },
+    { lat: 41.00, lon: 39.72, label: "Trabzon" },
+    { lat: 39.93, lon: 32.86, label: "Ankara" },
+    { lat: 52.52, lon: 13.40, label: "Berlin" },
+    { lat: 51.51, lon: -0.13, label: "Londra" },
+    { lat: 40.71, lon: -74.0, label: "New York" },
+    { lat: 25.20, lon: 55.27, label: "Dubai" },
+    { lat: 35.68, lon: 139.69, label: "Tokyo" }
+  ];
+  const world = Orb3D.globe(document.getElementById("globe"), {
+    markers: PLACES,
+    arcs: PLACES.filter(p => p.label !== "Trabzon").map(p => ({ from: [41.00, 39.72], to: [p.lat, p.lon] })),
+    rings: [{ radius: 1.28, tilt: [1.2, 0.3], color: "accent", alpha: 0.7, spin: { axis: "y", speed: 0.15 } }],
+    scroll: "#intro",
+    startLon: 30
+  });
+  const box = document.getElementById("places");
+  PLACES.forEach(p => {
+    const b = document.createElement("button");
+    b.textContent = p.label;
+    b.onclick = () => world.focus(p.lat, p.lon);
+    box.appendChild(b);
+  });
+
+  // şekil galerisi
+  const S = Orb3D.shapes;
+  const GALLERY = [
+    ["Portföy küresi", [S.sphere(), S.ring({ radius: 1.34, tilt: [1.05, 0.35], color: "accent" }), S.ring({ radius: 1.55, tilt: [-0.6, -0.5] })]],
+    ["Halka (torus)", [S.torus({ tilt: [0.6, 0.2] })]],
+    ["İkosahedron", [S.icosahedron({ radius: 1.1 }), S.sphere({ lat: 0, lon: 3, radius: 1.1, alpha: 0.4 })]],
+    ["Küp + yörünge", [S.cube({ radius: 1.1 }), S.ring({ radius: 1.4, tilt: [1.3, 0.2], color: "accent", spin: { axis: "y", speed: 0.6 } })]],
+    ["Sarmal", [S.spiral({ turns: 5 }), S.spiral({ turns: 5, color: "accent" })]],
+    ["Yıldızlı küre", [S.sphere({ lat: 5, lon: 8 }), S.stars({ count: 220, inner: 1.6, outer: 2.6 })]]
+  ];
+  // sarmalın ikinci kolu yarım tur kaydırılmış olsun
+  GALLERY[4][1][1].lines = GALLERY[4][1][1].lines.map(l => l.map((v, i) => i % 3 === 1 ? v : -v));
+  const grid = document.getElementById("grid");
+  GALLERY.forEach(([name, shapes], i) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.innerHTML = "<canvas></canvas><span>" + name + "</span>";
+    grid.appendChild(cell);
+    Orb3D.create(cell.querySelector("canvas"), { shapes, size: 0.26, drag: true, autoRotate: 0.25 + i * 0.03 });
+  });
+</script>
+</body>
+</html>

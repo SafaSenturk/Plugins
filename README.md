@@ -8,6 +8,7 @@ Her klasörde kendi README'si var: ne işe yaradığı, nasıl eklendiği, örne
 | Eklenti | Açıklama | Kaynak proje |
 |---|---|---|
 | [page-editor](page-editor/) | Blok tabanlı görsel sayfa düzenleyici; sürükle-bırak, yerinde yazma, tema, TR/EN, yayınla + geçmiş | delamour |
+| [orb3d](orb3d/) | Hareketli 3B tel kafes nesneler ve kıtalı dünya küresi; sürükle, şehir işaretleri, yaylar, kaydırma efekti | portföy |
 | [web-utils](web-utils/) | `esc`, `slugify`, `money`/`parseNum` (TR), görsel küçültme, toast, güvenli localStorage | delamour |
 | [persistent-store](persistent-store/) | localStorage'a kaydedilen dinlenebilir depo + hazır sepet/favoriler + React kancası | ecommerce-saas |
 | [guess-game-engine](guess-game-engine/) | Loldle/Wordle tarzı tahmin oyunu motoru (JS + Kotlin), günlük mod, paylaşım metni | gamedle |
