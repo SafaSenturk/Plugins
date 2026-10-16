@@ -4,11 +4,12 @@
 
 # Plugins
 
-Projelerimden çıkardığım, bağımsız ve yeniden kullanılabilir eklentiler ve şablonlar. Her klasörün kendi README'si var: ne işe yaradığı, nasıl eklendiği ve örnek kod.
+Projelerimden çıkardığım, bağımsız ve yeniden kullanılabilir eklentiler ve şablonlar. Her eklentinin kendi README'si var: ne işe yaradığı, nasıl eklendiği ve örnek kod.
 
-[![Flutter](https://img.shields.io/badge/Flutter-8%20eklenti-02569B?logo=flutter&logoColor=white)](#-flutter--dart)
-[![Web](https://img.shields.io/badge/Web-7%20eklenti-F7DF1E?logo=javascript&logoColor=black)](#-web-javascript--typescript)
-[![Unity](https://img.shields.io/badge/Unity-5%20eklenti-222222?logo=unity&logoColor=white)](#-unity-c)
+[![Mobil](https://img.shields.io/badge/Mobil-7%20eklenti-02569B)](mobile/)
+[![Web](https://img.shields.io/badge/Web-6%20eklenti-E8A317)](web/)
+[![Oyun](https://img.shields.io/badge/Oyun-6%20eklenti-222222)](game/)
+[![Araçlar](https://img.shields.io/badge/Araçlar-1%20araç-5B5BD6)](tools/)
 
 🇬🇧 [English](#-english)
 
@@ -16,79 +17,66 @@ Projelerimden çıkardığım, bağımsız ve yeniden kullanılabilir eklentiler
 
 ---
 
-## 📱 Flutter / Dart
+| Klasör | İçerik |
+|---|---|
+| 📱 [`mobile/`](mobile/) | Flutter / Dart: arayüz ve hareket, ödeme, randevu, sohbet, önbellek, gökyüzü, görüntü işleme |
+| 🌐 [`web/`](web/) | JavaScript / TypeScript: sayfa düzenleyici, 3B küre, tarayıcı yardımcıları, depo, WhatsApp botu, NestJS kimlik doğrulama |
+| 🎮 [`game/`](game/) | Unity (C#) betikleri ve tahmin oyunu motoru (JS + Kotlin) |
+| 🛠️ [`tools/`](tools/) | Tasarım karşılaştırma, emülatör otomasyonu, README görselleri (Python) |
+
+## 📱 Mobil (Flutter / Dart)
 
 Altı Flutter uygulamamdan çıkarıldı. Dart dosyalarının hepsi `flutter analyze` ile temiz ve testli; kopyalayıp projene ekleyebilirsin.
 
 | Eklenti | Ne işe yarar | Kaynak uygulama |
 |---|---|---|
-| [flutter-motion-kit](flutter-motion-kit/) | **Kaydırarak onayla** düğmesi, basınca küçülen kartlar, sırayla beliren listeler, buzlu cam, yükleniyor iskeleti, boş/hata ekranı | [GlobeGo](https://github.com/SafaSenturk/flutter-travel-app-ui), [NovaShop](https://github.com/SafaSenturk/flutter-ecommerce-app) |
-| [flutter-payment-card](flutter-payment-card/) | Luhn, marka tespiti, son kullanma ve CVV doğrulama, yazarken biçimleme, CVV'de dönen animasyonlu kart | [NovaShop](https://github.com/SafaSenturk/flutter-ecommerce-app) |
-| [booking-slots](booking-slots/) | Çift rezervasyonu imkânsız kılan müsaitlik hesabı + Firestore transaction'ı + güvenlik kuralları | [Glow Studio](https://github.com/SafaSenturk/flutter-booking-app) |
-| [firestore-chat-kit](firestore-chat-kit/) | Gerçek zamanlı sohbetin veri katmanı: okundu, yazıyor, tepki, düzenle/sil, güvenlik kuralları, bildirim fonksiyonu | [Pulse](https://github.com/SafaSenturk/flutter-firebase-chat) |
-| [flutter-offline-cache](flutter-offline-cache/) | API yanıtları için önce çevrimdışı önbellek: internet yokken son veriyi "çevrimdışı" işaretiyle verir | [Atmos](https://github.com/SafaSenturk/flutter-weather-app) |
-| [flutter-weather-sky](flutter-weather-sky/) | Havaya ve gece/gündüze göre hareketli gökyüzü, elle çizilmiş hava ikonları, WMO kodları | [Atmos](https://github.com/SafaSenturk/flutter-weather-app) |
-| [flutter-image-filters](flutter-image-filters/) | Saf Dart ile Otsu, uyarlamalı eşik, Sobel, histogram eşitleme, konvolüsyon (OCR öncesi belge temizleme) | [Vision Lab](https://github.com/SafaSenturk/flutter-ai-vision-app) |
-| [flutter-dev-tools](flutter-dev-tools/) | Python araçları: tasarımla piksel karşılaştırma, emülatör otomasyonu, README banner'ı, uygulama simgesi | altısının da vitrini |
+| [flutter-motion-kit](mobile/flutter-motion-kit/) | **Kaydırarak onayla** düğmesi, basınca küçülen kartlar, sırayla beliren listeler, buzlu cam, yükleniyor iskeleti, boş/hata ekranı | [GlobeGo](https://github.com/SafaSenturk/flutter-travel-app-ui), [NovaShop](https://github.com/SafaSenturk/flutter-ecommerce-app) |
+| [flutter-payment-card](mobile/flutter-payment-card/) | Luhn, marka tespiti, son kullanma ve CVV doğrulama, yazarken biçimleme, CVV'de dönen animasyonlu kart | [NovaShop](https://github.com/SafaSenturk/flutter-ecommerce-app) |
+| [booking-slots](mobile/booking-slots/) | Çift rezervasyonu imkânsız kılan müsaitlik hesabı + Firestore transaction'ı + güvenlik kuralları | [Glow Studio](https://github.com/SafaSenturk/flutter-booking-app) |
+| [firestore-chat-kit](mobile/firestore-chat-kit/) | Gerçek zamanlı sohbetin veri katmanı: okundu, yazıyor, tepki, düzenle/sil, güvenlik kuralları, bildirim fonksiyonu | [Pulse](https://github.com/SafaSenturk/flutter-firebase-chat) |
+| [flutter-offline-cache](mobile/flutter-offline-cache/) | API yanıtları için önce çevrimdışı önbellek: internet yokken son veriyi "çevrimdışı" işaretiyle verir | [Atmos](https://github.com/SafaSenturk/flutter-weather-app) |
+| [flutter-weather-sky](mobile/flutter-weather-sky/) | Havaya ve gece/gündüze göre hareketli gökyüzü, elle çizilmiş hava ikonları, WMO kodları | [Atmos](https://github.com/SafaSenturk/flutter-weather-app) |
+| [flutter-image-filters](mobile/flutter-image-filters/) | Saf Dart ile Otsu, uyarlamalı eşik, Sobel, histogram eşitleme, konvolüsyon (OCR öncesi belge temizleme) | [Vision Lab](https://github.com/SafaSenturk/flutter-ai-vision-app) |
 
 ## 🌐 Web (JavaScript / TypeScript)
 
-| Eklenti | Açıklama | Kaynak proje |
+| Eklenti | Ne işe yarar | Kaynak proje |
 |---|---|---|
-| [page-editor](page-editor/) | Blok tabanlı görsel sayfa düzenleyici; sürükle-bırak, yerinde yazma, tema, TR/EN, yayınla + geçmiş | delamour |
-| [orb3d](orb3d/) | Hareketli 3B tel kafes nesneler ve kıtalı dünya küresi; sürükle, şehir işaretleri, yaylar, kaydırma efekti | portföy |
-| [web-utils](web-utils/) | `esc`, `slugify`, `money`/`parseNum` (TR), görsel küçültme, toast, güvenli localStorage | delamour |
-| [persistent-store](persistent-store/) | localStorage'a kaydedilen dinlenebilir depo + hazır sepet/favoriler + React kancası | ecommerce-saas |
-| [guess-game-engine](guess-game-engine/) | Loldle/Wordle tarzı tahmin oyunu motoru (JS + Kotlin), günlük mod, paylaşım metni | gamedle |
-| [whatsapp-bot-kit](whatsapp-bot-kit/) | Evolution API istemcisi, webhook ayrıştırıcı, Gemini ile işletme adına cevap | whatsapp-ai-asistan |
-| [nestjs-jwt-auth](nestjs-jwt-auth/) | NestJS kayıt/giriş, JWT, rol koruması, şifre değiştirme | ecommerce-backend |
+| [page-editor](web/page-editor/) | Blok tabanlı görsel sayfa düzenleyici; sürükle-bırak, yerinde yazma, tema, TR/EN, yayınla + geçmiş | delamour |
+| [orb3d](web/orb3d/) | Hareketli 3B tel kafes nesneler ve kıtalı dünya küresi; sürükle, şehir işaretleri, yaylar, kaydırma efekti | portföy |
+| [web-utils](web/web-utils/) | `esc`, `slugify`, `money`/`parseNum` (TR), görsel küçültme, toast, güvenli localStorage | delamour |
+| [persistent-store](web/persistent-store/) | localStorage'a kaydedilen dinlenebilir depo + hazır sepet/favoriler + React kancası | ecommerce-saas |
+| [whatsapp-bot-kit](web/whatsapp-bot-kit/) | Evolution API istemcisi, webhook ayrıştırıcı, Gemini ile işletme adına cevap | [whatsapp-ai-asistan](https://github.com/SafaSenturk/whatsapp-ai-asistan) |
+| [nestjs-jwt-auth](web/nestjs-jwt-auth/) | NestJS kayıt/giriş, JWT, rol koruması, şifre değiştirme | ecommerce-backend |
 
-## 🎮 Unity (C#)
+## 🎮 Oyun (Unity / C#, Kotlin)
 
-| Eklenti | Açıklama |
+| Eklenti | Ne işe yarar |
 |---|---|
-| [unity-ui-kit](unity-ui-kit/) | Kodla kurulan arayüz: paneller, butonlar, sekmeler, barlar. Sprite/prefab gerekmez |
-| [unity-pause-menu](unity-pause-menu/) | Esc ile duraklatma menüsü; kaydet/yükle/ek buton bağlanır (ui-kit gerekir) |
-| [unity-fps-controller](unity-fps-controller/) | Birinci şahıs yürüme, koşma, zıplama, fareyle bakış |
-| [unity-procedural-audio](unity-procedural-audio/) | Ses dosyası olmadan kodla üretilen efektler ve kalabalık alkışı |
-| [unity-foot-grounder](unity-foot-grounder/) | Humanoid karakterlerin yere gömülmesini/havada süzülmesini engeller |
+| [unity-ui-kit](game/unity-ui-kit/) | Kodla kurulan arayüz: paneller, butonlar, sekmeler, barlar. Sprite/prefab gerekmez |
+| [unity-pause-menu](game/unity-pause-menu/) | Esc ile duraklatma menüsü; kaydet/yükle/ek buton bağlanır (ui-kit gerekir) |
+| [unity-fps-controller](game/unity-fps-controller/) | Birinci şahıs yürüme, koşma, zıplama, fareyle bakış |
+| [unity-procedural-audio](game/unity-procedural-audio/) | Ses dosyası olmadan kodla üretilen efektler ve kalabalık alkışı |
+| [unity-foot-grounder](game/unity-foot-grounder/) | Humanoid karakterlerin yere gömülmesini/havada süzülmesini engeller |
+| [guess-game-engine](game/guess-game-engine/) | Loldle/Wordle tarzı tahmin oyunu motoru (JS + Kotlin), günlük mod, paylaşım metni ([gamedle](https://github.com/SafaSenturk/gamedle)) |
 
 Unity eklentilerinin hepsi SupermarketOyunu'ndan çıkarıldı. Input System ile de eski Input Manager ile de çalışırlar.
 
-## 🤖 Android (Kotlin)
+## 🛠️ Araçlar (Python)
 
-`guess-game-engine/DleEngine.kt` ve `DailyTracker.kt` (gamedle).
+| Araç | Ne işe yarar |
+|---|---|
+| [flutter-dev-tools](tools/flutter-dev-tools/) | Tasarımla piksel karşılaştırma, emülatör otomasyonu, README banner'ı, uygulama simgesi; altı Flutter uygulamamın vitrini bunlarla hazırlandı |
 
 ---
 
 ## 🇬🇧 English
 
-Standalone, reusable plugins and templates taken from my projects. Every folder has its own README with what it does, how to add it and example code (Turkish first, English below).
+Standalone, reusable plugins and templates taken from my projects, grouped by category. Every plugin has its own README with what it does, how to add it and example code (Turkish first, English below).
 
-### Flutter / Dart
-
-Taken from my six Flutter apps. The Dart files pass `flutter analyze` and come with tests.
-
-| Plugin | What it does | Source app |
-|---|---|---|
-| [flutter-motion-kit](flutter-motion-kit/) | Slide-to-confirm control, press-to-shrink cards, staggered list entrance, frosted glass, loading skeletons, empty/error views | GlobeGo, NovaShop |
-| [flutter-payment-card](flutter-payment-card/) | Luhn, brand detection, expiry and CVV checks, input formatters, an animated card that flips for the CVV | NovaShop |
-| [booking-slots](booking-slots/) | Availability logic + Firestore transaction + security rules that make double bookings impossible | Glow Studio |
-| [firestore-chat-kit](firestore-chat-kit/) | Real-time chat data layer: read receipts, typing, reactions, edit/delete, security rules, push function | Pulse |
-| [flutter-offline-cache](flutter-offline-cache/) | Offline-first cache for API responses: returns the last saved data marked as stale when there is no connection | Atmos |
-| [flutter-weather-sky](flutter-weather-sky/) | Animated sky for every weather and time of day, hand-drawn weather icons, WMO codes | Atmos |
-| [flutter-image-filters](flutter-image-filters/) | Otsu, adaptive threshold, Sobel, histogram equalization and convolution in pure Dart | Vision Lab |
-| [flutter-dev-tools](flutter-dev-tools/) | Python tools: pixel comparison with a design, emulator automation, README banners, launcher icons | all six apps |
-
-### Web, Unity and Android
-
-The web plugins cover:
-- A page editor.
-- A 3D globe.
-- Browser utilities.
-- A persistent store.
-- A guess-game engine.
-- A WhatsApp bot kit.
-- NestJS JWT auth.
-
-The Unity scripts cover a code-built UI kit, a pause menu, an FPS controller, procedural audio and a foot grounder. Details are in the tables above and in each folder's README.
+| Folder | Contents |
+|---|---|
+| 📱 [`mobile/`](mobile/) | **Flutter / Dart**, taken from my six Flutter apps, analyzed and tested: slide-to-confirm and motion widgets, payment card validation with a flipping card, double-booking-proof booking slots, a Firestore chat kit, an offline-first cache, an animated weather sky, image filters |
+| 🌐 [`web/`](web/) | **JavaScript / TypeScript**: page editor, 3D globe, browser utilities, persistent store, WhatsApp bot kit, NestJS JWT auth |
+| 🎮 [`game/`](game/) | **Unity (C#)**: code-built UI kit, pause menu, FPS controller, procedural audio, foot grounder; plus a Wordle-style guessing-game engine (JS + Kotlin) |
+| 🛠️ [`tools/`](tools/) | **Python**: pixel comparison with a design, emulator automation, README banners, launcher icons |
