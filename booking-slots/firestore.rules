@@ -1,0 +1,90 @@
+rules_version = '2';
+
+// Booking security rules (from the Glow Studio app).
+//  • Customers book for themselves; every booking starts as "pending".
+//  • A time slot can only be taken once (slots/{staff_day_time} is created
+//    together with the appointment in one transaction).
+//  • The salon owner (role "admin") approves, declines or completes bookings.
+//  • "Demo owner mode" lets anyone try the owner screens on their OWN bookings
+//    without ever seeing other customers' data.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return signedIn() && me().role == 'admin';
+    }
+
+    function changedOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.role == 'customer'
+        && request.resource.data.name is string;
+      // Users may edit their profile and toggle demo mode, never their role.
+      allow update: if signedIn() && request.auth.uid == uid
+        && changedOnly(['name', 'phone', 'demoOwner', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    // Catalog: readable by everyone signed in, edited from the console only.
+    match /services/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /staff/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /appointments/{id} {
+      function owns() {
+        return resource.data.uid == request.auth.uid;
+      }
+
+      allow read: if signedIn() && (owns() || isAdmin());
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.start is timestamp
+        && request.resource.data.start > request.time
+        && request.resource.data.slotIds is list
+        && request.resource.data.slotIds.size() > 0
+        && request.resource.data.slotIds.size() <= 8;
+      allow update: if signedIn() && changedOnly(['status', 'statusNote', 'updatedAt']) && (
+        // The salon owner manages every booking.
+        isAdmin()
+        // Customers can cancel their own upcoming booking.
+        || (owns() && request.resource.data.status == 'cancelled'
+            && resource.data.status in ['pending', 'confirmed'])
+        // Demo owner mode: act as the salon on your own bookings only.
+        || (owns() && me().demoOwner == true
+            && request.resource.data.status in ['confirmed', 'declined', 'completed'])
+      );
+      allow delete: if false;
+    }
+
+    // One document per booked 30-minute slot, so two people can never hold the
+    // same staff member at the same time.
+    match /slots/{slotId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && slotId == request.resource.data.staffId + '_' + request.resource.data.day + '_' + request.resource.data.time
+        && getAfter(/databases/$(database)/documents/appointments/$(request.resource.data.appointmentId)).data.uid == request.auth.uid;
+      // Freed when a booking is cancelled or declined.
+      allow delete: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow update: if false;
+    }
+  }
+}
