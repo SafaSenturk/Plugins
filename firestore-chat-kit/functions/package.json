@@ -1,0 +1,11 @@
+{
+  "name": "pulse-functions",
+  "description": "Sends a push notification for every new Pulse chat message",
+  "engines": { "node": "22" },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.0.0"
+  },
+  "private": true
+}

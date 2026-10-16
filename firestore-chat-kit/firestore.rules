@@ -1,0 +1,71 @@
+rules_version = '2';
+
+// Pulse Chat security rules.
+// Users can only write their own profile, only the two members of a chat can
+// see it, and every message must be sent as the signed-in user.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function changedOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 40;
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.name.size() <= 40;
+      allow delete: if false;
+    }
+
+    match /chats/{chatId} {
+      // A one-to-one chat id is the two user ids, sorted and joined with "_".
+      function validNewChat() {
+        let m = request.resource.data.members;
+        return m.size() == 2
+          && request.auth.uid in m
+          && chatId == (m[0] < m[1] ? m[0] + '_' + m[1] : m[1] + '_' + m[0]);
+      }
+
+      allow get: if signedIn() && (resource == null || request.auth.uid in resource.data.members);
+      allow list: if signedIn() && request.auth.uid in resource.data.members;
+      allow create: if signedIn() && validNewChat();
+      allow update: if signedIn() && request.auth.uid in resource.data.members
+        && request.resource.data.members == resource.data.members;
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        function members() {
+          return get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+        }
+        // getAfter() sees the chat that is created in the same batch as the first message.
+        function membersAfter() {
+          return getAfter(/databases/$(database)/documents/chats/$(chatId)).data.members;
+        }
+
+        // A chat that does not exist yet has no messages, so listening is harmless.
+        allow read: if signedIn() && (
+          !exists(/databases/$(database)/documents/chats/$(chatId)) || request.auth.uid in members());
+        allow create: if signedIn() && request.auth.uid in membersAfter()
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000;
+        allow update: if signedIn() && request.auth.uid in members() && (
+          // The sender can edit or delete their own message…
+          (resource.data.senderId == request.auth.uid && changedOnly(['text', 'deleted', 'editedAt', 'reactions']))
+          // …the other member can only mark it read or react to it.
+          || (resource.data.senderId != request.auth.uid && changedOnly(['readAt', 'reactions']))
+        );
+        allow delete: if false;
+      }
+    }
+  }
+}

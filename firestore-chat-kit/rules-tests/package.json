@@ -1,0 +1,12 @@
+{
+  "name": "pulse-rules-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npx --yes firebase-tools@15 emulators:exec --only firestore --project demo-pulse \"node --test\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "firebase": "^11.0.0"
+  }
+}
